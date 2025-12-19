@@ -104,7 +104,7 @@ base_model = EfficientNetB0(
     include_top=False,
     input_shape=(IMG_SIZE, IMG_SIZE, 3)
 )
-base_model.trainable = True 
+base_model.trainable =  False
 
 inputs = Input(shape=(SEQUENCE_LENGTH, IMG_SIZE, IMG_SIZE, 3))
 x = TimeDistributed(base_model)(inputs)
