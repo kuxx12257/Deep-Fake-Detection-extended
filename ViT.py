@@ -8,18 +8,10 @@ from collections import defaultdict
 from sklearn.metrics import classification_report, accuracy_score
 import warnings
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-# =============================
-# DEVICE
-# =============================
 gpus = tf.config.list_physical_devices("GPU")
 device = "/GPU:0" if gpus else "/CPU:0"
 print("Using device:", device)
 
-# =============================
-# CONFIG
-# =============================
 IMG_SIZE = (224, 224)
 SEQ_LEN = 8
 BATCH_SIZE = 8
@@ -29,9 +21,6 @@ DATASET_DIR = "frames_dataset"
 
 AUTOTUNE = tf.data.AUTOTUNE
 
-# =============================
-# FRAME SAMPLING (CRITICAL)
-# =============================
 def sample_frames(frame_list, seq_len):
     if len(frame_list) >= seq_len:
         idx = np.linspace(0, len(frame_list) - 1, seq_len).astype(int)
@@ -39,9 +28,6 @@ def sample_frames(frame_list, seq_len):
     else:
         return frame_list + [frame_list[-1]] * (seq_len - len(frame_list))
 
-# =============================
-# DATASET BUILDER (VIDEO-WISE)
-# =============================
 def build_video_sequences(dataset_dir, split="training", val_ratio=0.2):
     videos, labels = [], []
     class_map = {"real": 0, "manipulated": 1}
@@ -90,9 +76,6 @@ val_ds   = build_video_sequences(DATASET_DIR, "validation")
 train_ds = train_ds.shuffle(128).batch(BATCH_SIZE).prefetch(AUTOTUNE)
 val_ds   = val_ds.batch(BATCH_SIZE).prefetch(AUTOTUNE)
 
-# =============================
-# MODEL (ViT + TEMPORAL POOLING)
-# =============================
 with tf.device(device):
     vit_backbone = vit.vit_b16(
         image_size=IMG_SIZE[0],
@@ -122,9 +105,6 @@ with tf.device(device):
 
 model.summary()
 
-# =============================
-# COMPILE
-# =============================
 model.compile(
     optimizer=tf.keras.optimizers.Adam(1e-4),
     loss="binary_crossentropy",
@@ -137,9 +117,6 @@ early_stopping = tf.keras.callbacks.EarlyStopping(
     restore_best_weights=True
 )
 
-# =============================
-# CLASS WEIGHTS (IMPORTANT)
-# =============================
 num_real = 400
 num_fake = 3000
 
@@ -148,9 +125,6 @@ class_weights = {
     1: 1.0
 }
 
-# =============================
-# TRAIN
-# =============================
 history = model.fit(
     train_ds,
     validation_data=val_ds,
@@ -161,9 +135,6 @@ history = model.fit(
 
 model.save("vit_temporal_pooling_model")
 
-# =============================
-# VIDEO-LEVEL EVALUATION
-# =============================
 def preprocess_frame(img):
     img = tf.image.resize(img, IMG_SIZE)
     img = tf.cast(img, tf.float32) / 255.0
