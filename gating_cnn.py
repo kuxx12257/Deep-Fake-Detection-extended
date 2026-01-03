@@ -12,10 +12,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
-
-# -------------------------------
 # Video feature extraction
-# -------------------------------
+
 def sample_frames(cap: cv2.VideoCapture, max_frames: int = 48, stride: int = 5) -> List[np.ndarray]:
     """Uniformly sample frames with a stride to reduce compute."""
     frames = []
@@ -164,9 +162,9 @@ def extract_video_features(path: str,
     return features_norm
 
 
-# -------------------------------
+
 # Rule-based fallback (optional)
-# -------------------------------
+
 def rule_based_decision(feats: np.ndarray,
                         area_thresh: float = 12.0,     # log1p(area)
                         motion_thresh: float = 0.8,
@@ -187,9 +185,9 @@ def rule_based_decision(feats: np.ndarray,
     return "ViT + CNN"
 
 
-# -------------------------------
+
 # Training utilities
-# -------------------------------
+
 CLASS_TO_ID = {"ViT": 0, "CNN": 1, "ViT + CNN": 2}
 ID_TO_CLASS = {v: k for k, v in CLASS_TO_ID.items()}
 
@@ -281,9 +279,8 @@ def train_classifier(video_dir: str,
     print(f"[INFO] Saved model to {model_out}")
 
 
-# -------------------------------
 # Inference
-# -------------------------------
+
 def predict_video(video_path: str,
                   model_path: Optional[str] = None) -> str:
     feats = extract_video_features(video_path)
@@ -299,9 +296,9 @@ def predict_video(video_path: str,
         return rule_based_decision(feats)
 
 
-# -------------------------------
+
 # CLI
-# -------------------------------
+
 def main():
     parser = argparse.ArgumentParser(description="Gating classifier for model selection (ViT vs CNN)")
     sub = parser.add_subparsers(dest="cmd")
